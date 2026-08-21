@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TycoonPark – Roller Coaster Tycoon</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game-container">
+
+  <!-- ── TOP BAR ── -->
+  <div id="topbar">
+    <h1>🎢 TycoonPark</h1>
+
+    <div class="stat-box">
+      <span class="stat-label">Cash</span>
+      <span class="stat-value green" id="stat-cash">$50,000</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Income/mo</span>
+      <span class="stat-value cyan" id="stat-income">$0</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Guests</span>
+      <span class="stat-value yellow" id="stat-guests">0</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Park Rating</span>
+      <span class="stat-value" id="stat-rating">650</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Happiness</span>
+      <span class="stat-value green" id="stat-happiness">75%</span>
+    </div>
+
+    <span id="date-display">Year 1, Month 1</span>
+
+    <div id="speed-controls">
+      <button class="speed-btn"        id="btn-pause" onclick="setSpeed(0)" title="Pause">⏸</button>
+      <button class="speed-btn active" id="btn-1x"    onclick="setSpeed(1)" title="1× Speed">▶</button>
+      <button class="speed-btn"        id="btn-3x"    onclick="setSpeed(3)" title="3× Speed">⏩</button>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div id="main">
+
+    <!-- LEFT SIDEBAR -->
+    <div id="sidebar">
+
+      <div class="sidebar-section">
+        <h3>🛠 Tools</h3>
+        <button class="tool-btn selected" id="tool-path"     onclick="selectTool('path')">
+          <span class="tool-icon">🛤</span> Path
+          <span class="ride-cost">$25</span>
+        </button>
+        <button class="tool-btn" id="tool-bulldoze"          onclick="selectTool('bulldoze')">
+          <span class="tool-icon">💥</span> Bulldoze
+          <span class="ride-cost">$5</span>
+        </button>
+        <button class="tool-btn" id="tool-entrance"          onclick="selectTool('entrance')">
+          <span class="tool-icon">🚪</span> Entrance
+          <span class="ride-cost">$500</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>🎢 Thrill Rides</h3>
+        <button class="tool-btn" id="tool-coaster"  onclick="selectTool('coaster')">
+          <span class="tool-icon">🎢</span> Roller Coaster
+          <span class="ride-cost">$5,000</span>
+        </button>
+        <button class="tool-btn" id="tool-looper"   onclick="selectTool('looper')">
+          <span class="tool-icon">🔄</span> Loop Coaster
+          <span class="ride-cost">$6,500</span>
+        </button>
+        <button class="tool-btn" id="tool-drop"     onclick="selectTool('drop')">
+          <span class="tool-icon">⬇️</span> Drop Tower
+          <span class="ride-cost">$3,000</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>🎡 Gentle Rides</h3>
+        <button class="tool-btn" id="tool-ferris"   onclick="selectTool('ferris')">
+          <span class="tool-icon">🎡</span> Ferris Wheel
+          <span class="ride-cost">$2,000</span>
+        </button>
+        <button class="tool-btn" id="tool-carousel" onclick="selectTool('carousel')">
+          <span class="tool-icon">🎠</span> Carousel
+          <span class="ride-cost">$1,500</span>
+        </button>
+        <button class="tool-btn" id="tool-bumper"   onclick="selectTool('bumper')">
+          <span class="tool-icon">🚗</span> Bumper Cars
+          <span class="ride-cost">$1,800</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>🌊 Water Rides</h3>
+        <button class="tool-btn" id="tool-flume"    onclick="selectTool('flume')">
+          <span class="tool-icon">🌊</span> Log Flume
+          <span class="ride-cost">$4,000</span>
+        </button>
+        <button class="tool-btn" id="tool-rapids"   onclick="selectTool('rapids')">
+          <span class="tool-icon">💦</span> River Rapids
+          <span class="ride-cost">$3,500</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>🍔 Shops</h3>
+        <button class="tool-btn" id="tool-food"     onclick="selectTool('food')">
+          <span class="tool-icon">🍔</span> Food Stall
+          <span class="ride-cost">$600</span>
+        </button>
+        <button class="tool-btn" id="tool-drink"    onclick="selectTool('drink')">
+          <span class="tool-icon">🧃</span> Drink Stall
+          <span class="ride-cost">$500</span>
+        </button>
+        <button class="tool-btn" id="tool-souvenir" onclick="selectTool('souvenir')">
+          <span class="tool-icon">🎁</span> Souvenir Shop
+          <span class="ride-cost">$800</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>🌳 Scenery</h3>
+        <button class="tool-btn" id="tool-tree"     onclick="selectTool('tree')">
+          <span class="tool-icon">🌳</span> Tree
+          <span class="ride-cost">$50</span>
+        </button>
+        <button class="tool-btn" id="tool-bench"    onclick="selectTool('bench')">
+          <span class="tool-icon">🪑</span> Bench
+          <span class="ride-cost">$80</span>
+        </button>
+        <button class="tool-btn" id="tool-fountain" onclick="selectTool('fountain')">
+          <span class="tool-icon">⛲</span> Fountain
+          <span class="ride-cost">$200</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>⚙️ Management</h3>
+        <button class="tool-btn" onclick="openPricingModal()">
+          <span class="tool-icon">💲</span> Set Prices
+        </button>
+        <button class="tool-btn" onclick="openStaffModal()">
+          <span class="tool-icon">👷</span> Hire Staff
+        </button>
+        <button class="tool-btn" onclick="openMarketingModal()">
+          <span class="tool-icon">📢</span> Marketing
+        </button>
+        <button class="tool-btn" onclick="openLoansModal()">
+          <span class="tool-icon">🏦</span> Bank Loans
+        </button>
+      </div>
+
+    </div><!-- /sidebar -->
+
+    <!-- CANVAS -->
+    <div id="canvas-wrapper">
+      <canvas id="game-canvas"></canvas>
+      <div id="notifications"></div>
+    </div>
+
+    <!-- RIGHT INFO PANEL -->
+    <div id="info-panel">
+
+      <div class="info-section">
+        <h3>📊 Finances</h3>
+        <div class="info-row"><span>Cash</span>        <span id="ip-cash">$50,000</span></div>
+        <div class="info-row"><span>Loans</span>       <span id="ip-loans">$0</span></div>
+        <div class="info-row"><span>Total Income</span><span id="ip-income">$0</span></div>
+        <div class="info-row"><span>Expenses</span>    <span id="ip-expenses">$0</span></div>
+        <div class="info-row"><span>Profit/mo</span>   <span id="ip-profit">$0</span></div>
+      </div>
+
+      <div class="info-section">
+        <h3>🎢 Park Stats</h3>
+        <div class="info-row"><span>Rides</span>      <span id="ip-rides">0</span></div>
+        <div class="info-row"><span>Open Rides</span> <span id="ip-open">0</span></div>
+        <div class="info-row"><span>Shops</span>      <span id="ip-shops">0</span></div>
+        <div class="info-row"><span>Staff</span>      <span id="ip-staff">0</span></div>
+        <div class="info-row"><span>Entry Fee</span>  <span id="ip-entry">$15</span></div>
+      </div>
+
+      <div class="info-section">
+        <h3>😊 Guest Mood</h3>
+        <div class="info-row"><span>Happiness</span><span id="ip-happy">75%</span></div>
+        <div class="progress-bar"><div class="progress-fill fill-green"  id="bar-happy"  style="width:75%"></div></div>
+        <div class="info-row"><span>Hunger</span>   <span id="ip-hunger">20%</span></div>
+        <div class="progress-bar"><div class="progress-fill fill-yellow" id="bar-hunger" style="width:20%"></div></div>
+        <div class="info-row"><span>Energy</span>   <span id="ip-energy">80%</span></div>
+        <div class="progress-bar"><div class="progress-fill fill-cyan"   id="bar-energy" style="width:80%"></div></div>
+        <div class="info-row"><span>Nauseated</span><span id="ip-nausea">5%</span></div>
+        <div class="progress-bar"><div class="progress-fill fill-red"    id="bar-nausea" style="width:5%"></div></div>
+      </div>
+
+      <div class="info-section">
+        <h3>🎢 Ride List</h3>
+        <div id="ride-list"></div>
+      </div>
+
+      <div class="info-section">
+        <h3>🌤 Weather</h3>
+        <div class="info-row"><span>Condition</span>   <span id="ip-weather">Sunny ☀️</span></div>
+        <div class="info-row"><span>Temp</span>         <span id="ip-temp">24°C</span></div>
+        <div class="info-row"><span>Next change</span>  <span id="ip-wchange">3 mo</span></div>
+      </div>
+
+      <div class="info-section">
+        <h3>🏆 Objectives</h3>
+        <div id="objectives-list" style="font-size:11px;color:#ccc;line-height:1.7;">Loading…</div>
+      </div>
+
+    </div><!-- /info-panel -->
+
+  </div><!-- /main -->
+
+  <!-- BOTTOM BAR -->
+  <div id="bottombar">
+    <span id="status-text">Welcome to TycoonPark! Build paths, place rides, and make guests happy.</span>
+    <div id="weather-display">
+      <span id="weather-icon">☀️</span>
+      <span id="weather-label">Sunny</span>
+    </div>
+    <span id="tile-coords" style="color:#555;">–</span>
+  </div>
+
+</div><!-- /game-container -->
+
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+
+<!-- Pricing -->
+<div class="modal-overlay" id="modal-pricing">
+  <div class="modal">
+    <h2>💲 Pricing Settings</h2>
+    <div class="modal-row">
+      <label>Park Entry Fee</label>
+      <input type="range" min="0" max="50" step="1" id="price-entry" oninput="updatePriceLabel('entry')">
+      <span class="val" id="label-entry">$15</span>
+    </div>
+    <div class="modal-row">
+      <label>Ride Ticket Price</label>
+      <input type="range" min="0" max="15" step="0.5" id="price-ride" oninput="updatePriceLabel('ride')">
+      <span class="val" id="label-ride">$3</span>
+    </div>
+    <div class="modal-row">
+      <label>Food Price</label>
+      <input type="range" min="1" max="20" step="0.5" id="price-food" oninput="updatePriceLabel('food')">
+      <span class="val" id="label-food">$4</span>
+    </div>
+    <div class="modal-row">
+      <label>Drink Price</label>
+      <input type="range" min="1" max="15" step="0.5" id="price-drink" oninput="updatePriceLabel('drink')">
+      <span class="val" id="label-drink">$3</span>
+    </div>
+    <button class="modal-btn" onclick="applyPricing()">Apply</button>
+    <button class="modal-btn secondary" onclick="closeModal('modal-pricing')">Cancel</button>
+  </div>
+</div>
+
+<!-- Staff -->
+<div class="modal-overlay" id="modal-staff">
+  <div class="modal">
+    <h2>👷 Staff Management</h2>
+    <div class="modal-row">
+      <label>Mechanics (maintain rides)</label>
+      <input type="range" min="0" max="20" step="1" id="staff-mechanic" oninput="updateStaffLabel('mechanic')">
+      <span class="val" id="label-mechanic">2</span>
+    </div>
+    <div class="modal-row">
+      <label>Janitors (keep park clean)</label>
+      <input type="range" min="0" max="20" step="1" id="staff-janitor" oninput="updateStaffLabel('janitor')">
+      <span class="val" id="label-janitor">2</span>
+    </div>
+    <div class="modal-row">
+      <label>Entertainers (raise happiness)</label>
+      <input type="range" min="0" max="10" step="1" id="staff-entertainer" oninput="updateStaffLabel('entertainer')">
+      <span class="val" id="label-entertainer">1</span>
+    </div>
+    <div class="modal-row">
+      <label>Security (reduce vandalism)</label>
+      <input type="range" min="0" max="10" step="1" id="staff-security" oninput="updateStaffLabel('security')">
+      <span class="val" id="label-security">1</span>
+    </div>
+    <div style="font-size:11px;color:#aaa;margin-top:6px;">
+      Monthly wage cost: <span id="staff-cost" style="color:#ffd700;">$1,200</span>
+    </div>
+    <button class="modal-btn" onclick="applyStaff()">Apply</button>
+    <button class="modal-btn secondary" onclick="closeModal('modal-staff')">Cancel</button>
+  </div>
+</div>
+
+<!-- Marketing -->
+<div class="modal-overlay" id="modal-marketing">
+  <div class="modal">
+    <h2>📢 Marketing Campaign</h2>
+    <div id="marketing-options"></div>
+    <button class="modal-btn secondary" onclick="closeModal('modal-marketing')">Close</button>
+  </div>
+</div>
+
+<!-- Loans -->
+<div class="modal-overlay" id="modal-loans">
+  <div class="modal">
+    <h2>🏦 Bank Loans</h2>
+    <div class="modal-row">
+      <label>Current Loan</label>
+      <span class="val" id="loan-current" style="color:#e94560;">$0</span>
+    </div>
+    <div class="modal-row">
+      <label>Interest Rate</label>
+      <span class="val">5%/yr</span>
+    </div>
+    <div class="modal-row">
+      <label>Borrow Amount</label>
+      <input type="range" min="0" max="50000" step="1000" id="loan-amount" oninput="updateLoanLabel()">
+      <span class="val" id="label-loan">$10,000</span>
+    </div>
+    <button class="modal-btn" onclick="handleTakeLoan()">Borrow</button>
+    <button class="modal-btn" onclick="handleRepayLoan()" style="background:#4caf50;">Repay $5k</button>
+    <button class="modal-btn secondary" onclick="closeModal('modal-loans')">Close</button>
+  </div>
+</div>
+
+<!-- Ride info -->
+<div class="modal-overlay" id="modal-ride-info">
+  <div class="modal">
+    <h2 id="ride-modal-title">Ride Info</h2>
+    <div id="ride-modal-body"></div>
+    <button class="modal-btn" onclick="toggleRide()">Toggle Open/Closed</button>
+    <button class="modal-btn" style="background:#e94560;" onclick="demolishRide()">Demolish</button>
+    <button class="modal-btn secondary" onclick="closeModal('modal-ride-info')">Close</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+<!-- Load order: constants → state → render → guests → rides → finance → ui → input → main -->
+<script src="js/constants.js"></script>
+<script src="js/state.js"></script>
+<script src="js/render.js"></script>
+<script src="js/guests.js"></script>
+<script src="js/rides.js"></script>
+<script src="js/finance.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/input.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
