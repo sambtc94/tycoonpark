@@ -1,283 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TycoonPark - Roller Coaster Tycoon</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #1a1a2e;
-    font-family: 'Segoe UI', sans-serif;
-    color: #eee;
-    overflow: hidden;
-    user-select: none;
-  }
-  #game-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100vw;
-  }
-
-  /* ── TOP BAR ── */
-  #topbar {
-    display: flex;
-    align-items: center;
-    background: linear-gradient(135deg, #16213e, #0f3460);
-    border-bottom: 2px solid #e94560;
-    padding: 6px 12px;
-    gap: 20px;
-    flex-shrink: 0;
-    z-index: 10;
-  }
-  #topbar h1 {
-    font-size: 18px;
-    color: #e94560;
-    text-shadow: 0 0 10px #e94560;
-    white-space: nowrap;
-  }
-  .stat-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgba(255,255,255,0.07);
-    border-radius: 6px;
-    padding: 4px 10px;
-    min-width: 80px;
-  }
-  .stat-label { font-size: 9px; color: #aaa; text-transform: uppercase; }
-  .stat-value { font-size: 14px; font-weight: bold; }
-  .stat-value.green  { color: #4caf50; }
-  .stat-value.yellow { color: #ffd700; }
-  .stat-value.red    { color: #e94560; }
-  .stat-value.cyan   { color: #00bcd4; }
-  #speed-controls { display: flex; gap: 4px; margin-left: auto; }
-  .speed-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: #fff;
-    padding: 4px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background 0.2s;
-  }
-  .speed-btn:hover, .speed-btn.active { background: #e94560; border-color: #e94560; }
-  #date-display { font-size: 12px; color: #aaa; white-space: nowrap; }
-
-  /* ── MAIN AREA ── */
-  #main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  /* ── LEFT SIDEBAR ── */
-  #sidebar {
-    width: 200px;
-    background: #16213e;
-    border-right: 2px solid #0f3460;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    overflow-y: auto;
-  }
-  .sidebar-section {
-    border-bottom: 1px solid #0f3460;
-    padding: 8px;
-  }
-  .sidebar-section h3 {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: #e94560;
-    margin-bottom: 6px;
-    letter-spacing: 1px;
-  }
-  .tool-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #ddd;
-    padding: 6px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 4px;
-    font-size: 12px;
-    transition: all 0.2s;
-    text-align: left;
-  }
-  .tool-btn:hover { background: rgba(233,69,96,0.2); border-color: #e94560; color: #fff; }
-  .tool-btn.selected { background: rgba(233,69,96,0.35); border-color: #e94560; color: #fff; }
-  .tool-icon { font-size: 16px; }
-  .ride-cost { font-size: 10px; color: #aaa; margin-left: auto; }
-
-  /* ── CANVAS AREA ── */
-  #canvas-wrapper {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-    background: #0a0a1a;
-  }
-  #game-canvas {
-    display: block;
-    cursor: crosshair;
-  }
-  #canvas-wrapper.pointer-cursor #game-canvas { cursor: pointer; }
-  #canvas-wrapper.move-cursor #game-canvas { cursor: grab; }
-
-  /* Notification popups */
-  #notifications {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    pointer-events: none;
-    z-index: 20;
-    max-width: 260px;
-  }
-  .notif {
-    background: rgba(22,33,62,0.95);
-    border-left: 3px solid #e94560;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    animation: slideIn 0.3s ease, fadeOut 0.5s ease 3.5s forwards;
-  }
-  .notif.positive { border-left-color: #4caf50; }
-  .notif.warning  { border-left-color: #ffd700; }
-  @keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
-  @keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
-
-  /* ── RIGHT PANEL (info) ── */
-  #info-panel {
-    width: 200px;
-    background: #16213e;
-    border-left: 2px solid #0f3460;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    overflow-y: auto;
-  }
-  .info-section {
-    border-bottom: 1px solid #0f3460;
-    padding: 8px;
-  }
-  .info-section h3 {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: #00bcd4;
-    margin-bottom: 6px;
-    letter-spacing: 1px;
-  }
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    margin-bottom: 3px;
-    color: #ccc;
-  }
-  .info-row span:last-child { color: #fff; font-weight: bold; }
-  .progress-bar {
-    height: 6px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 3px;
-    margin: 3px 0;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.5s;
-  }
-  .fill-green  { background: linear-gradient(90deg, #4caf50, #81c784); }
-  .fill-yellow { background: linear-gradient(90deg, #ffd700, #ffe57f); }
-  .fill-red    { background: linear-gradient(90deg, #e94560, #ff6b6b); }
-  .fill-cyan   { background: linear-gradient(90deg, #00bcd4, #80deea); }
-
-  /* Ride list */
-  .ride-item {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 4px;
-    padding: 5px 7px;
-    margin-bottom: 4px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .ride-item:hover { background: rgba(0,188,212,0.1); }
-  .ride-item-name { font-weight: bold; color: #fff; }
-  .ride-item-stats { color: #aaa; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
-
-  /* ── BOTTOM BAR ── */
-  #bottombar {
-    background: #16213e;
-    border-top: 2px solid #0f3460;
-    padding: 5px 12px;
-    font-size: 11px;
-    color: #aaa;
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    flex-shrink: 0;
-  }
-  #status-text { flex: 1; }
-  #weather-display { display: flex; align-items: center; gap: 6px; }
-
-  /* Modal overlays */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    display: none;
-  }
-  .modal-overlay.visible { display: flex; }
-  .modal {
-    background: #16213e;
-    border: 2px solid #0f3460;
-    border-radius: 10px;
-    padding: 24px;
-    min-width: 340px;
-    max-width: 480px;
-  }
-  .modal h2 { color: #e94560; margin-bottom: 14px; font-size: 18px; }
-  .modal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .modal-row label { font-size: 13px; color: #ccc; }
-  .modal-row input[type=range] { width: 100px; accent-color: #e94560; }
-  .modal-row span.val { font-size: 13px; color: #ffd700; font-weight: bold; min-width: 50px; text-align: right; }
-  .modal-btn {
-    background: #e94560;
-    border: none;
-    color: #fff;
-    padding: 8px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 12px;
-    margin-right: 8px;
-    transition: background 0.2s;
-  }
-  .modal-btn:hover { background: #c73652; }
-  .modal-btn.secondary { background: rgba(255,255,255,0.1); }
-  .modal-btn.secondary:hover { background: rgba(255,255,255,0.2); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TycoonPark – Roller Coaster Tycoon</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div id="game-container">
 
-  <!-- TOP BAR -->
+  <!-- ── TOP BAR ── -->
   <div id="topbar">
     <h1>🎢 TycoonPark</h1>
+
     <div class="stat-box">
       <span class="stat-label">Cash</span>
       <span class="stat-value green" id="stat-cash">$50,000</span>
@@ -298,30 +33,33 @@
       <span class="stat-label">Happiness</span>
       <span class="stat-value green" id="stat-happiness">75%</span>
     </div>
+
     <span id="date-display">Year 1, Month 1</span>
+
     <div id="speed-controls">
-      <button class="speed-btn" onclick="setSpeed(0)" id="btn-pause" title="Pause">⏸</button>
-      <button class="speed-btn active" onclick="setSpeed(1)" id="btn-1x" title="1x Speed">▶</button>
-      <button class="speed-btn" onclick="setSpeed(3)" id="btn-3x" title="3x Speed">⏩</button>
+      <button class="speed-btn"        id="btn-pause" onclick="setSpeed(0)" title="Pause">⏸</button>
+      <button class="speed-btn active" id="btn-1x"    onclick="setSpeed(1)" title="1× Speed">▶</button>
+      <button class="speed-btn"        id="btn-3x"    onclick="setSpeed(3)" title="3× Speed">⏩</button>
     </div>
   </div>
 
-  <!-- MAIN -->
+  <!-- ── MAIN ── -->
   <div id="main">
 
     <!-- LEFT SIDEBAR -->
     <div id="sidebar">
+
       <div class="sidebar-section">
         <h3>🛠 Tools</h3>
-        <button class="tool-btn selected" id="tool-path" onclick="selectTool('path')">
+        <button class="tool-btn selected" id="tool-path"     onclick="selectTool('path')">
           <span class="tool-icon">🛤</span> Path
           <span class="ride-cost">$25</span>
         </button>
-        <button class="tool-btn" id="tool-bulldoze" onclick="selectTool('bulldoze')">
+        <button class="tool-btn" id="tool-bulldoze"          onclick="selectTool('bulldoze')">
           <span class="tool-icon">💥</span> Bulldoze
           <span class="ride-cost">$5</span>
         </button>
-        <button class="tool-btn" id="tool-entrance" onclick="selectTool('entrance')">
+        <button class="tool-btn" id="tool-entrance"          onclick="selectTool('entrance')">
           <span class="tool-icon">🚪</span> Entrance
           <span class="ride-cost">$500</span>
         </button>
@@ -329,55 +67,55 @@
 
       <div class="sidebar-section">
         <h3>🎢 Thrill Rides</h3>
-        <button class="tool-btn" id="tool-coaster" onclick="selectTool('coaster')">
+        <button class="tool-btn" id="tool-coaster"  onclick="selectTool('coaster')">
           <span class="tool-icon">🎢</span> Roller Coaster
-          <span class="ride-cost">$5000</span>
+          <span class="ride-cost">$5,000</span>
         </button>
-        <button class="tool-btn" id="tool-looper" onclick="selectTool('looper')">
+        <button class="tool-btn" id="tool-looper"   onclick="selectTool('looper')">
           <span class="tool-icon">🔄</span> Loop Coaster
-          <span class="ride-cost">$6500</span>
+          <span class="ride-cost">$6,500</span>
         </button>
-        <button class="tool-btn" id="tool-drop" onclick="selectTool('drop')">
+        <button class="tool-btn" id="tool-drop"     onclick="selectTool('drop')">
           <span class="tool-icon">⬇️</span> Drop Tower
-          <span class="ride-cost">$3000</span>
+          <span class="ride-cost">$3,000</span>
         </button>
       </div>
 
       <div class="sidebar-section">
         <h3>🎡 Gentle Rides</h3>
-        <button class="tool-btn" id="tool-ferris" onclick="selectTool('ferris')">
+        <button class="tool-btn" id="tool-ferris"   onclick="selectTool('ferris')">
           <span class="tool-icon">🎡</span> Ferris Wheel
-          <span class="ride-cost">$2000</span>
+          <span class="ride-cost">$2,000</span>
         </button>
         <button class="tool-btn" id="tool-carousel" onclick="selectTool('carousel')">
           <span class="tool-icon">🎠</span> Carousel
-          <span class="ride-cost">$1500</span>
+          <span class="ride-cost">$1,500</span>
         </button>
-        <button class="tool-btn" id="tool-bumper" onclick="selectTool('bumper')">
+        <button class="tool-btn" id="tool-bumper"   onclick="selectTool('bumper')">
           <span class="tool-icon">🚗</span> Bumper Cars
-          <span class="ride-cost">$1800</span>
+          <span class="ride-cost">$1,800</span>
         </button>
       </div>
 
       <div class="sidebar-section">
         <h3>🌊 Water Rides</h3>
-        <button class="tool-btn" id="tool-flume" onclick="selectTool('flume')">
+        <button class="tool-btn" id="tool-flume"    onclick="selectTool('flume')">
           <span class="tool-icon">🌊</span> Log Flume
-          <span class="ride-cost">$4000</span>
+          <span class="ride-cost">$4,000</span>
         </button>
-        <button class="tool-btn" id="tool-rapids" onclick="selectTool('rapids')">
+        <button class="tool-btn" id="tool-rapids"   onclick="selectTool('rapids')">
           <span class="tool-icon">💦</span> River Rapids
-          <span class="ride-cost">$3500</span>
+          <span class="ride-cost">$3,500</span>
         </button>
       </div>
 
       <div class="sidebar-section">
         <h3>🍔 Shops</h3>
-        <button class="tool-btn" id="tool-food" onclick="selectTool('food')">
+        <button class="tool-btn" id="tool-food"     onclick="selectTool('food')">
           <span class="tool-icon">🍔</span> Food Stall
           <span class="ride-cost">$600</span>
         </button>
-        <button class="tool-btn" id="tool-drink" onclick="selectTool('drink')">
+        <button class="tool-btn" id="tool-drink"    onclick="selectTool('drink')">
           <span class="tool-icon">🧃</span> Drink Stall
           <span class="ride-cost">$500</span>
         </button>
@@ -389,11 +127,11 @@
 
       <div class="sidebar-section">
         <h3>🌳 Scenery</h3>
-        <button class="tool-btn" id="tool-tree" onclick="selectTool('tree')">
+        <button class="tool-btn" id="tool-tree"     onclick="selectTool('tree')">
           <span class="tool-icon">🌳</span> Tree
           <span class="ride-cost">$50</span>
         </button>
-        <button class="tool-btn" id="tool-bench" onclick="selectTool('bench')">
+        <button class="tool-btn" id="tool-bench"    onclick="selectTool('bench')">
           <span class="tool-icon">🪑</span> Bench
           <span class="ride-cost">$80</span>
         </button>
@@ -418,7 +156,8 @@
           <span class="tool-icon">🏦</span> Bank Loans
         </button>
       </div>
-    </div>
+
+    </div><!-- /sidebar -->
 
     <!-- CANVAS -->
     <div id="canvas-wrapper">
@@ -428,34 +167,35 @@
 
     <!-- RIGHT INFO PANEL -->
     <div id="info-panel">
+
       <div class="info-section">
         <h3>📊 Finances</h3>
-        <div class="info-row"><span>Cash</span><span id="ip-cash">$50,000</span></div>
-        <div class="info-row"><span>Loans</span><span id="ip-loans">$0</span></div>
+        <div class="info-row"><span>Cash</span>        <span id="ip-cash">$50,000</span></div>
+        <div class="info-row"><span>Loans</span>       <span id="ip-loans">$0</span></div>
         <div class="info-row"><span>Total Income</span><span id="ip-income">$0</span></div>
-        <div class="info-row"><span>Expenses</span><span id="ip-expenses">$0</span></div>
-        <div class="info-row"><span>Profit/mo</span><span id="ip-profit">$0</span></div>
+        <div class="info-row"><span>Expenses</span>    <span id="ip-expenses">$0</span></div>
+        <div class="info-row"><span>Profit/mo</span>   <span id="ip-profit">$0</span></div>
       </div>
 
       <div class="info-section">
         <h3>🎢 Park Stats</h3>
-        <div class="info-row"><span>Rides</span><span id="ip-rides">0</span></div>
-        <div class="info-row"><span>Open Rides</span><span id="ip-open">0</span></div>
-        <div class="info-row"><span>Shops</span><span id="ip-shops">0</span></div>
-        <div class="info-row"><span>Staff</span><span id="ip-staff">0</span></div>
-        <div class="info-row"><span>Entry Fee</span><span id="ip-entry">$15</span></div>
+        <div class="info-row"><span>Rides</span>      <span id="ip-rides">0</span></div>
+        <div class="info-row"><span>Open Rides</span> <span id="ip-open">0</span></div>
+        <div class="info-row"><span>Shops</span>      <span id="ip-shops">0</span></div>
+        <div class="info-row"><span>Staff</span>      <span id="ip-staff">0</span></div>
+        <div class="info-row"><span>Entry Fee</span>  <span id="ip-entry">$15</span></div>
       </div>
 
       <div class="info-section">
         <h3>😊 Guest Mood</h3>
         <div class="info-row"><span>Happiness</span><span id="ip-happy">75%</span></div>
-        <div class="progress-bar"><div class="progress-fill fill-green" id="bar-happy" style="width:75%"></div></div>
-        <div class="info-row"><span>Hunger</span><span id="ip-hunger">20%</span></div>
+        <div class="progress-bar"><div class="progress-fill fill-green"  id="bar-happy"  style="width:75%"></div></div>
+        <div class="info-row"><span>Hunger</span>   <span id="ip-hunger">20%</span></div>
         <div class="progress-bar"><div class="progress-fill fill-yellow" id="bar-hunger" style="width:20%"></div></div>
-        <div class="info-row"><span>Energy</span><span id="ip-energy">80%</span></div>
-        <div class="progress-bar"><div class="progress-fill fill-cyan" id="bar-energy" style="width:80%"></div></div>
+        <div class="info-row"><span>Energy</span>   <span id="ip-energy">80%</span></div>
+        <div class="progress-bar"><div class="progress-fill fill-cyan"   id="bar-energy" style="width:80%"></div></div>
         <div class="info-row"><span>Nauseated</span><span id="ip-nausea">5%</span></div>
-        <div class="progress-bar"><div class="progress-fill fill-red" id="bar-nausea" style="width:5%"></div></div>
+        <div class="progress-bar"><div class="progress-fill fill-red"    id="bar-nausea" style="width:5%"></div></div>
       </div>
 
       <div class="info-section">
@@ -465,18 +205,17 @@
 
       <div class="info-section">
         <h3>🌤 Weather</h3>
-        <div class="info-row"><span>Condition</span><span id="ip-weather">Sunny ☀️</span></div>
-        <div class="info-row"><span>Temp</span><span id="ip-temp">24°C</span></div>
-        <div class="info-row"><span>Next change</span><span id="ip-wchange">3 mo</span></div>
+        <div class="info-row"><span>Condition</span>   <span id="ip-weather">Sunny ☀️</span></div>
+        <div class="info-row"><span>Temp</span>         <span id="ip-temp">24°C</span></div>
+        <div class="info-row"><span>Next change</span>  <span id="ip-wchange">3 mo</span></div>
       </div>
 
       <div class="info-section">
         <h3>🏆 Objectives</h3>
-        <div id="objectives-list" style="font-size:11px; color:#ccc; line-height:1.7;">
-          Loading…
-        </div>
+        <div id="objectives-list" style="font-size:11px;color:#ccc;line-height:1.7;">Loading…</div>
       </div>
-    </div>
+
+    </div><!-- /info-panel -->
 
   </div><!-- /main -->
 
@@ -492,7 +231,9 @@
 
 </div><!-- /game-container -->
 
-<!-- MODALS -->
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+
+<!-- Pricing -->
 <div class="modal-overlay" id="modal-pricing">
   <div class="modal">
     <h2>💲 Pricing Settings</h2>
@@ -521,6 +262,7 @@
   </div>
 </div>
 
+<!-- Staff -->
 <div class="modal-overlay" id="modal-staff">
   <div class="modal">
     <h2>👷 Staff Management</h2>
@@ -544,12 +286,15 @@
       <input type="range" min="0" max="10" step="1" id="staff-security" oninput="updateStaffLabel('security')">
       <span class="val" id="label-security">1</span>
     </div>
-    <div style="font-size:11px;color:#aaa;margin-top:6px;">Monthly wage cost: <span id="staff-cost" style="color:#ffd700;">$1,200</span></div>
+    <div style="font-size:11px;color:#aaa;margin-top:6px;">
+      Monthly wage cost: <span id="staff-cost" style="color:#ffd700;">$1,200</span>
+    </div>
     <button class="modal-btn" onclick="applyStaff()">Apply</button>
     <button class="modal-btn secondary" onclick="closeModal('modal-staff')">Cancel</button>
   </div>
 </div>
 
+<!-- Marketing -->
 <div class="modal-overlay" id="modal-marketing">
   <div class="modal">
     <h2>📢 Marketing Campaign</h2>
@@ -558,6 +303,7 @@
   </div>
 </div>
 
+<!-- Loans -->
 <div class="modal-overlay" id="modal-loans">
   <div class="modal">
     <h2>🏦 Bank Loans</h2>
@@ -574,12 +320,13 @@
       <input type="range" min="0" max="50000" step="1000" id="loan-amount" oninput="updateLoanLabel()">
       <span class="val" id="label-loan">$10,000</span>
     </div>
-    <button class="modal-btn" onclick="takeLoan()">Borrow</button>
-    <button class="modal-btn" onclick="repayLoan()" style="background:#4caf50;">Repay $5k</button>
+    <button class="modal-btn" onclick="handleTakeLoan()">Borrow</button>
+    <button class="modal-btn" onclick="handleRepayLoan()" style="background:#4caf50;">Repay $5k</button>
     <button class="modal-btn secondary" onclick="closeModal('modal-loans')">Close</button>
   </div>
 </div>
 
+<!-- Ride info -->
 <div class="modal-overlay" id="modal-ride-info">
   <div class="modal">
     <h2 id="ride-modal-title">Ride Info</h2>
@@ -590,1226 +337,17 @@
   </div>
 </div>
 
-<script>
-// ═══════════════════════════════════════════════════════
-//  CONSTANTS & CONFIG
-// ═══════════════════════════════════════════════════════
-const TILE_W = 64, TILE_H = 32;
-const GRID_COLS = 40, GRID_ROWS = 40;
-const MONTH_TICKS = 600;   // ticks per in-game month
+<!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+<!-- Load order: constants → state → render → guests → rides → finance → ui → input → main -->
+<script src="js/constants.js"></script>
+<script src="js/state.js"></script>
+<script src="js/render.js"></script>
+<script src="js/guests.js"></script>
+<script src="js/rides.js"></script>
+<script src="js/finance.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/input.js"></script>
+<script src="js/main.js"></script>
 
-const RIDE_TYPES = {
-  coaster:   { name:'Roller Coaster',  icon:'🎢', cost:5000,  excitement:8.5, intensity:7.5, nausea:5.0, capacity:24, ticketMult:1.4, size:3, color:'#e74c3c', category:'thrill' },
-  looper:    { name:'Loop Coaster',    icon:'🔄', cost:6500,  excitement:9.0, intensity:9.0, nausea:6.5, capacity:20, ticketMult:1.6, size:3, color:'#8e44ad', category:'thrill' },
-  drop:      { name:'Drop Tower',      icon:'⬇️', cost:3000,  excitement:7.0, intensity:8.0, nausea:4.0, capacity:16, ticketMult:1.2, size:2, color:'#e67e22', category:'thrill' },
-  ferris:    { name:'Ferris Wheel',    icon:'🎡', cost:2000,  excitement:4.0, intensity:1.0, nausea:0.5, capacity:32, ticketMult:0.8, size:2, color:'#f39c12', category:'gentle' },
-  carousel:  { name:'Carousel',        icon:'🎠', cost:1500,  excitement:3.0, intensity:0.5, nausea:0.0, capacity:20, ticketMult:0.6, size:2, color:'#e91e63', category:'gentle' },
-  bumper:    { name:'Bumper Cars',     icon:'🚗', cost:1800,  excitement:4.5, intensity:2.5, nausea:1.0, capacity:16, ticketMult:0.7, size:2, color:'#2196f3', category:'gentle' },
-  flume:     { name:'Log Flume',       icon:'🌊', cost:4000,  excitement:6.5, intensity:4.5, nausea:2.5, capacity:20, ticketMult:1.0, size:3, color:'#00bcd4', category:'water'  },
-  rapids:    { name:'River Rapids',    icon:'💦', cost:3500,  excitement:6.0, intensity:5.0, nausea:3.0, capacity:24, ticketMult:0.9, size:3, color:'#009688', category:'water'  },
-  food:      { name:'Food Stall',      icon:'🍔', cost:600,   excitement:0,   intensity:0,   nausea:0,   capacity:0,  ticketMult:0,   size:1, color:'#ff9800', category:'shop'   },
-  drink:     { name:'Drink Stall',     icon:'🧃', cost:500,   excitement:0,   intensity:0,   nausea:0,   capacity:0,  ticketMult:0,   size:1, color:'#4caf50', category:'shop'   },
-  souvenir:  { name:'Souvenir Shop',   icon:'🎁', cost:800,   excitement:0,   intensity:0,   nausea:0,   capacity:0,  ticketMult:0,   size:1, color:'#9c27b0', category:'shop'   },
-};
-const SCENERY_TYPES = {
-  tree:     { icon:'🌳', cost:50   },
-  bench:    { icon:'🪑', cost:80   },
-  fountain: { icon:'⛲', cost:200  },
-};
-const WEATHER_TYPES = [
-  { name:'Sunny',   icon:'☀️',  tempRange:[22,32], guestMult:1.2, happyMod:5   },
-  { name:'Cloudy',  icon:'⛅',  tempRange:[16,24], guestMult:1.0, happyMod:0   },
-  { name:'Rainy',   icon:'🌧️', tempRange:[10,18], guestMult:0.6, happyMod:-10 },
-  { name:'Stormy',  icon:'⛈️', tempRange:[8,15],  guestMult:0.2, happyMod:-20 },
-  { name:'Windy',   icon:'🌬️', tempRange:[14,22], guestMult:0.85,happyMod:-5  },
-  { name:'Snowy',   icon:'❄️', tempRange:[-2,6],  guestMult:0.3, happyMod:-15 },
-  { name:'Hot',     icon:'🌡️', tempRange:[32,40], guestMult:0.9, happyMod:-5  },
-];
-const MARKETING_CAMPAIGNS = [
-  { id:'flyer',   name:'Flyer Drop',       cost:500,   duration:3, guestBonus:20,  desc:'Attract 20 extra guests/month for 3 months' },
-  { id:'tv',      name:'TV Commercial',    cost:3000,  duration:6, guestBonus:60,  desc:'Attract 60 extra guests/month for 6 months' },
-  { id:'online',  name:'Online Campaign',  cost:1500,  duration:4, guestBonus:35,  desc:'Attract 35 extra guests/month for 4 months' },
-  { id:'promo',   name:'Special Event',    cost:5000,  duration:2, guestBonus:150, desc:'Massive event bringing 150 extra guests for 2 months' },
-];
-
-// ═══════════════════════════════════════════════════════
-//  GAME STATE
-// ═══════════════════════════════════════════════════════
-const state = {
-  cash: 50000,
-  loans: 0,
-  monthlyIncome: 0,
-  monthlyExpenses: 0,
-  monthlyProfit: 0,
-  tickAccumIncome: 0,
-  tickAccumExpenses: 0,
-
-  year: 1,
-  month: 1,
-  tick: 0,
-  speed: 1,
-  paused: false,
-
-  parkRating: 650,
-  entryFee: 15,
-  ridePrice: 3,
-  foodPrice: 4,
-  drinkPrice: 3,
-
-  staff: { mechanic:2, janitor:2, entertainer:1, security:1 },
-  staffWage: 1200,
-
-  weather: 0,
-  temperature: 24,
-  weatherChangeIn: 3,
-
-  guests: [],
-  rides: [],
-  grid: [],        // [row][col] = tile object
-  selectedTool: 'path',
-  selectedRide: null,
-
-  marketing: [],   // active campaigns {id, monthsLeft, guestBonus}
-
-  objectives: [
-    { text:'Reach 50 guests',       target: ()=> state.guests.length >= 50,          done: false },
-    { text:'Earn $100k total',      target: ()=> state.totalEarned >= 100000,         done: false },
-    { text:'Park Rating ≥ 800',     target: ()=> state.parkRating >= 800,             done: false },
-    { text:'Build 5 rides',         target: ()=> state.rides.filter(r=>r.category!=='shop').length>=5, done:false },
-    { text:'100 guests at once',    target: ()=> state.guests.length >= 100,          done: false },
-    { text:'Profit $5k in a month', target: ()=> state.lastMonthProfit >= 5000,       done: false },
-  ],
-  totalEarned: 0,
-  lastMonthProfit: 0,
-
-  idCounter: 0,
-  nextId() { return ++this.idCounter; },
-
-  stats: { totalGuests: 0, ridesRidden: 0, foodSold: 0, drinkSold: 0 },
-};
-
-// Initialize grid
-for (let r = 0; r < GRID_ROWS; r++) {
-  state.grid[r] = [];
-  for (let c = 0; c < GRID_COLS; c++) {
-    state.grid[r][c] = { type: 'grass', object: null };
-  }
-}
-// Place default entrance at center-bottom area
-const ENT_ROW = Math.floor(GRID_ROWS * 0.75);
-const ENT_COL = Math.floor(GRID_COLS / 2);
-state.grid[ENT_ROW][ENT_COL] = { type: 'entrance', object: null };
-// Place a short path from entrance inward
-for (let i = 1; i <= 4; i++) {
-  state.grid[ENT_ROW - i][ENT_COL] = { type: 'path', object: null };
-}
-
-// ═══════════════════════════════════════════════════════
-//  CANVAS SETUP
-// ═══════════════════════════════════════════════════════
-const canvas = document.getElementById('game-canvas');
-const ctx = canvas.getContext('2d');
-const wrapper = document.getElementById('canvas-wrapper');
-let camX = 0, camY = 0;
-let isDragging = false, dragStartX = 0, dragStartY = 0, camStartX = 0, camStartY = 0;
-let hoverRow = -1, hoverCol = -1;
-
-function resizeCanvas() {
-  canvas.width  = wrapper.clientWidth;
-  canvas.height = wrapper.clientHeight;
-  // Center camera on grid
-  if (camX === 0 && camY === 0) {
-    const [cx, cy] = isoToScreen(Math.floor(GRID_ROWS/2), Math.floor(GRID_COLS/2));
-    camX = cx - canvas.width  / 2;
-    camY = cy - canvas.height / 2;
-  }
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-// ═══════════════════════════════════════════════════════
-//  COORDINATE HELPERS
-// ═══════════════════════════════════════════════════════
-function isoToScreen(row, col) {
-  const x = (col - row) * (TILE_W / 2);
-  const y = (col + row) * (TILE_H / 2);
-  return [x - camX, y - camY];
-}
-function screenToGrid(sx, sy) {
-  const wx = sx + camX, wy = sy + camY;
-  const col = (wx / (TILE_W / 2) + wy / (TILE_H / 2)) / 2;
-  const row = (wy / (TILE_H / 2) - wx / (TILE_W / 2)) / 2;
-  return [Math.round(row), Math.round(col)];
-}
-
-// ═══════════════════════════════════════════════════════
-//  DRAWING
-// ═══════════════════════════════════════════════════════
-const TILE_COLORS = {
-  grass:    '#2d5a27',
-  path:     '#8b7355',
-  entrance: '#e94560',
-};
-const GRASS_SHADES = ['#2d5a27','#2e5c28','#305f2a','#2c5826','#2f5b28'];
-
-function drawTile(row, col) {
-  const tile = state.grid[row][col];
-  const [sx, sy] = isoToScreen(row, col);
-
-  // Culling
-  if (sx < -TILE_W*2 || sx > canvas.width + TILE_W*2) return;
-  if (sy < -TILE_H*3 || sy > canvas.height + TILE_H*3) return;
-
-  // Diamond points
-  const pts = [
-    [sx, sy - TILE_H/2],
-    [sx + TILE_W/2, sy],
-    [sx, sy + TILE_H/2],
-    [sx - TILE_W/2, sy],
-  ];
-
-  ctx.beginPath();
-  ctx.moveTo(...pts[0]);
-  ctx.lineTo(...pts[1]);
-  ctx.lineTo(...pts[2]);
-  ctx.lineTo(...pts[3]);
-  ctx.closePath();
-
-  // Fill
-  let fill;
-  if (tile.type === 'grass') {
-    fill = GRASS_SHADES[(row * 7 + col * 3) % GRASS_SHADES.length];
-  } else if (tile.type === 'path') {
-    fill = '#8b7355';
-  } else if (tile.type === 'entrance') {
-    fill = '#e94560';
-  } else {
-    fill = '#555';
-  }
-  ctx.fillStyle = fill;
-  ctx.fill();
-
-  // Hover highlight
-  if (row === hoverRow && col === hoverCol) {
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.fill();
-  }
-
-  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-  ctx.lineWidth = 0.5;
-  ctx.stroke();
-
-  // Draw object on tile
-  if (tile.object) {
-    drawObject(tile.object, sx, sy);
-  }
-}
-
-function drawObject(obj, sx, sy) {
-  const s = obj.size || 1;
-  const bw = TILE_W * s * 0.7;
-  const bh = TILE_H * s * 1.8;
-  const bx = sx - bw / 2;
-  const by = sy - bh + TILE_H * 0.4;
-
-  if (obj.category === 'shop' || obj.type === 'scenery') {
-    // Simple colored box
-    ctx.fillStyle = obj.color || '#888';
-    ctx.beginPath();
-    ctx.roundRect(bx, by, bw, bh * 0.6, 4);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.beginPath();
-    ctx.roundRect(bx, by, bw, bh * 0.6, 4);
-    ctx.stroke();
-  } else if (obj.type !== 'scenery') {
-    // Ride — draw animated structure
-    const t = Date.now() / 600;
-    ctx.save();
-    // Base platform
-    ctx.fillStyle = obj.color || '#888';
-    ctx.fillRect(bx, by + bh * 0.55, bw, bh * 0.08);
-    // Structure
-    ctx.strokeStyle = obj.color || '#888';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    if (obj.rideType === 'coaster' || obj.rideType === 'looper') {
-      // Draw coaster track silhouette
-      ctx.moveTo(bx + 4, by + bh * 0.55);
-      ctx.bezierCurveTo(bx + bw*0.2, by, bx + bw*0.8, by, bx + bw - 4, by + bh*0.55);
-    } else if (obj.rideType === 'drop') {
-      ctx.moveTo(sx, by);
-      ctx.lineTo(sx, by + bh * 0.55);
-    } else if (obj.rideType === 'ferris') {
-      ctx.arc(sx, by + bh * 0.3, bw * 0.38, 0, Math.PI * 2);
-    } else {
-      ctx.moveTo(bx + 4, by + bh * 0.55);
-      ctx.lineTo(bx + bw / 2, by + bh * 0.1);
-      ctx.lineTo(bx + bw - 4, by + bh * 0.55);
-    }
-    ctx.stroke();
-  }
-
-  // Icon + name label
-  ctx.font = `${14 + s * 4}px serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText(obj.icon || '?', sx, sy - bh * 0.05);
-
-  // Status indicator
-  if (obj.status === 'closed') {
-    ctx.fillStyle = '#e94560';
-    ctx.font = 'bold 10px sans-serif';
-    ctx.fillText('CLOSED', sx, by - 4);
-  } else if (obj.status === 'maintenance') {
-    ctx.fillStyle = '#ffd700';
-    ctx.font = 'bold 10px sans-serif';
-    ctx.fillText('MAINT', sx, by - 4);
-  }
-
-  // Guest queue dots
-  if (obj.queue && obj.queue > 0) {
-    ctx.fillStyle = '#ffd700';
-    ctx.font = '10px sans-serif';
-    ctx.fillText(`⏳${obj.queue}`, sx + bw*0.3, by + bh*0.55 + 14);
-  }
-}
-
-function drawGuest(g) {
-  const [sx, sy] = isoToScreen(g.row, g.col);
-  if (sx < -20 || sx > canvas.width + 20 || sy < -20 || sy > canvas.height + 20) return;
-  // Tiny circle person
-  ctx.beginPath();
-  ctx.arc(sx + g.offsetX, sy + g.offsetY - 8, 4, 0, Math.PI * 2);
-  ctx.fillStyle = g.color;
-  ctx.fill();
-  // Mood indicator
-  if (g.happiness < 30) {
-    ctx.font = '8px serif';
-    ctx.fillText('😢', sx + g.offsetX - 4, sy + g.offsetY - 14);
-  } else if (g.happiness > 80) {
-    ctx.font = '8px serif';
-    ctx.fillText('😄', sx + g.offsetX - 4, sy + g.offsetY - 14);
-  }
-}
-
-let animFrame = 0;
-function render() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Background sky gradient
-  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  sky.addColorStop(0, '#0a0a2e');
-  sky.addColorStop(1, '#1a1a4e');
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Draw tiles in isometric order (back to front)
-  for (let r = 0; r < GRID_ROWS; r++) {
-    for (let c = 0; c < GRID_COLS; c++) {
-      drawTile(r, c);
-    }
-  }
-
-  // Draw guests on top
-  for (const g of state.guests) {
-    drawGuest(g);
-  }
-
-  animFrame++;
-  requestAnimationFrame(render);
-}
-render();
-
-// ═══════════════════════════════════════════════════════
-//  INPUT HANDLING
-// ═══════════════════════════════════════════════════════
-canvas.addEventListener('mousedown', e => {
-  if (e.button === 1 || e.button === 2 || e.shiftKey) {
-    isDragging = true;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    camStartX = camX;
-    camStartY = camY;
-    wrapper.classList.add('move-cursor');
-    return;
-  }
-  const rect = canvas.getBoundingClientRect();
-  const [row, col] = screenToGrid(e.clientX - rect.left, e.clientY - rect.top);
-  handleTileClick(row, col);
-});
-
-canvas.addEventListener('mousemove', e => {
-  if (isDragging) {
-    camX = camStartX + (dragStartX - e.clientX);
-    camY = camStartY + (dragStartY - e.clientY);
-    return;
-  }
-  const rect = canvas.getBoundingClientRect();
-  const [row, col] = screenToGrid(e.clientX - rect.left, e.clientY - rect.top);
-  hoverRow = row; hoverCol = col;
-  if (row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS) {
-    const t = state.grid[row][col];
-    const obj = t.object;
-    document.getElementById('tile-coords').textContent =
-      `[${row},${col}] ${t.type}${obj ? ' – ' + obj.name : ''}`;
-  }
-});
-
-canvas.addEventListener('mouseup', e => {
-  isDragging = false;
-  wrapper.classList.remove('move-cursor');
-});
-canvas.addEventListener('mouseleave', () => { isDragging = false; wrapper.classList.remove('move-cursor'); });
-canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-// Zoom
-canvas.addEventListener('wheel', e => {
-  e.preventDefault();
-  // Simple pan on wheel
-  camX += e.deltaX;
-  camY += e.deltaY;
-}, { passive: false });
-
-function handleTileClick(row, col) {
-  if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) return;
-  const tile = state.grid[row][col];
-  const tool = state.selectedTool;
-
-  // Clicking on existing object
-  if (tile.object && tool !== 'bulldoze') {
-    openRideInfo(tile.object);
-    return;
-  }
-
-  if (tool === 'bulldoze') {
-    bulldozeTile(row, col);
-    return;
-  }
-  if (tool === 'path') {
-    placePath(row, col);
-    return;
-  }
-  if (tool === 'entrance') {
-    placeEntrance(row, col);
-    return;
-  }
-
-  const rDef = RIDE_TYPES[tool];
-  if (rDef) {
-    placeRide(row, col, tool, rDef);
-    return;
-  }
-  const sDef = SCENERY_TYPES[tool];
-  if (sDef) {
-    placeScenery(row, col, tool, sDef);
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-//  PLACEMENT FUNCTIONS
-// ═══════════════════════════════════════════════════════
-function placePath(row, col) {
-  if (!canAfford(25)) return;
-  if (state.grid[row][col].type !== 'grass') { notify('Tile already occupied!', 'warning'); return; }
-  spend(25);
-  state.grid[row][col] = { type: 'path', object: null };
-}
-
-function placeEntrance(row, col) {
-  if (!canAfford(500)) return;
-  if (state.grid[row][col].type !== 'grass') { notify('Need empty land!', 'warning'); return; }
-  spend(500);
-  state.grid[row][col] = { type: 'entrance', object: null };
-}
-
-function placeRide(row, col, rideType, def) {
-  if (!canAfford(def.cost)) return;
-  const tile = state.grid[row][col];
-  if (tile.object) { notify('Tile occupied!', 'warning'); return; }
-  if (tile.type === 'entrance') { notify("Can't build on entrance!", 'warning'); return; }
-
-  spend(def.cost);
-  tile.type = 'built';
-
-  const ride = {
-    id: state.nextId(),
-    rideType,
-    name: def.name,
-    icon: def.icon,
-    color: def.color,
-    category: def.category,
-    cost: def.cost,
-    excitement: def.excitement + (Math.random() * 0.5 - 0.25),
-    intensity: def.intensity,
-    nausea: def.nausea,
-    capacity: def.capacity,
-    ticketMult: def.ticketMult,
-    size: def.size,
-    status: 'open',       // open / closed / maintenance
-    queue: 0,
-    riderCount: 0,
-    totalRiders: 0,
-    income: 0,
-    breakdown: 0,         // breakdown timer
-    maintenanceDue: 0,
-    row, col,
-    age: 0,               // months
-  };
-  tile.object = ride;
-  state.rides.push(ride);
-  notify(`${def.icon} ${def.name} built! Cost $${def.cost.toLocaleString()}`, 'positive');
-  updateRideList();
-}
-
-function placeScenery(row, col, sType, def) {
-  if (!canAfford(def.cost)) return;
-  const tile = state.grid[row][col];
-  if (tile.object) { notify('Tile occupied!', 'warning'); return; }
-  spend(def.cost);
-  tile.type = 'scenery';
-  tile.object = {
-    id: state.nextId(),
-    type: 'scenery',
-    category: 'scenery',
-    name: sType,
-    icon: def.icon,
-    color: '#666',
-    size: 1,
-    row, col,
-  };
-}
-
-function bulldozeTile(row, col) {
-  const tile = state.grid[row][col];
-  if (tile.type === 'grass') { notify('Nothing to bulldoze.', 'warning'); return; }
-  if (tile.type === 'entrance') { notify("Can't remove the entrance!", 'warning'); return; }
-  if (!canAfford(5)) return;
-
-  spend(5);
-  // Remove ride from list
-  if (tile.object && tile.object.id) {
-    const idx = state.rides.findIndex(r => r.id === tile.object.id);
-    if (idx !== -1) {
-      // Refund 25% of cost
-      const refund = Math.floor((tile.object.cost || 0) * 0.25);
-      earn(refund);
-      notify(`Demolished. Refund: $${refund}`, 'warning');
-      state.rides.splice(idx, 1);
-    }
-  }
-  state.grid[row][col] = { type: 'grass', object: null };
-  updateRideList();
-}
-
-// ═══════════════════════════════════════════════════════
-//  GUEST SYSTEM
-// ═══════════════════════════════════════════════════════
-const GUEST_COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8','#f06595','#74c0fc'];
-const GUEST_NAMES = ['Alice','Bob','Carol','Dave','Eve','Frank','Grace','Hank','Iris','Jack','Kim','Leo'];
-
-function spawnGuest() {
-  if (state.guests.length >= 300) return;
-  const weather = WEATHER_TYPES[state.weather];
-  const guestMult = weather.guestMult;
-
-  // Base arrival rate depends on park rating, entry fee, weather, marketing
-  let maxPerMonth = Math.floor((state.parkRating / 20) * guestMult);
-  // Marketing bonus
-  for (const c of state.marketing) { maxPerMonth += c.guestBonus; }
-  // Entry fee penalty
-  if (state.entryFee > 20) maxPerMonth = Math.floor(maxPerMonth * 0.8);
-  if (state.entryFee > 35) maxPerMonth = Math.floor(maxPerMonth * 0.5);
-
-  const perTick = maxPerMonth / MONTH_TICKS;
-  if (Math.random() > perTick) return;
-
-  // Find entrance
-  let eRow = ENT_ROW, eCol = ENT_COL;
-  outer: for (let r = 0; r < GRID_ROWS; r++)
-    for (let c = 0; c < GRID_COLS; c++)
-      if (state.grid[r][c].type === 'entrance') { eRow = r; eCol = c; break outer; }
-
-  const g = {
-    id: state.nextId(),
-    name: GUEST_NAMES[Math.floor(Math.random() * GUEST_NAMES.length)],
-    color: GUEST_COLORS[Math.floor(Math.random() * GUEST_COLORS.length)],
-    row: eRow, col: eCol,
-    offsetX: Math.random() * 8 - 4,
-    offsetY: Math.random() * 8 - 4,
-    happiness: 70 + Math.floor(Math.random() * 20),
-    hunger: 0,
-    thirst: 0,
-    energy: 100,
-    nausea: 0,
-    cash: state.entryFee + 20 + Math.floor(Math.random() * 40),
-    ridesRidden: 0,
-    target: null,
-    state: 'wander',     // wander / queuing / riding / eating / leaving
-    stateTimer: 0,
-    rideTarget: null,
-  };
-  state.guests.push(g);
-  state.totalEarned += state.entryFee;
-  state.tickAccumIncome += state.entryFee;
-  state.stats.totalGuests++;
-  earn(state.entryFee);
-}
-
-function updateGuests() {
-  const weather = WEATHER_TYPES[state.weather];
-  const toRemove = [];
-
-  for (const g of state.guests) {
-    // Passive stat changes
-    g.hunger  = Math.min(100, g.hunger + 0.03);
-    g.thirst  = Math.min(100, g.thirst + 0.04);
-    g.energy  = Math.max(0,   g.energy - 0.015);
-    g.nausea  = Math.max(0,   g.nausea - 0.02);
-
-    // Happiness drivers
-    let happyChange = weather.happyMod * 0.002;
-    if (g.hunger > 70) happyChange -= 0.05;
-    if (g.thirst > 70) happyChange -= 0.06;
-    if (g.nausea > 60) happyChange -= 0.08;
-    if (g.energy < 20) happyChange -= 0.04;
-    happyChange += state.staff.entertainer * 0.005;
-    g.happiness = Math.max(0, Math.min(100, g.happiness + happyChange));
-
-    // AI state machine
-    g.stateTimer = Math.max(0, g.stateTimer - 1);
-
-    if (g.state === 'wander' && g.stateTimer === 0) {
-      // Decide what to do
-      if (g.hunger > 60) {
-        // Find food stall
-        const food = nearestShop(g, 'food');
-        if (food) { g.state = 'goingToShop'; g.rideTarget = food; }
-      } else if (g.thirst > 60) {
-        const drink = nearestShop(g, 'drink');
-        if (drink) { g.state = 'goingToShop'; g.rideTarget = drink; }
-      } else {
-        // Try a ride
-        const ride = pickRide(g);
-        if (ride) { g.state = 'goingToRide'; g.rideTarget = ride; }
-      }
-      g.stateTimer = 30 + Math.floor(Math.random() * 60);
-    }
-
-    if (g.state === 'goingToRide' || g.state === 'goingToShop') {
-      if (g.rideTarget) {
-        // Walk toward target
-        const dr = g.rideTarget.row - g.row;
-        const dc = g.rideTarget.col - g.col;
-        if (Math.abs(dr) + Math.abs(dc) <= 1) {
-          // Arrived
-          if (g.state === 'goingToRide') {
-            rideGuest(g, g.rideTarget);
-          } else {
-            shopGuest(g, g.rideTarget);
-          }
-          g.state = 'wander';
-          g.stateTimer = 20 + Math.floor(Math.random() * 40);
-        } else {
-          // Step toward
-          if (Math.random() < 0.5) {
-            g.row += Math.sign(dr);
-          } else {
-            g.col += Math.sign(dc);
-          }
-          g.row = Math.max(0, Math.min(GRID_ROWS-1, g.row));
-          g.col = Math.max(0, Math.min(GRID_COLS-1, g.col));
-        }
-      } else {
-        g.state = 'wander';
-      }
-    }
-
-    // Random wander step
-    if (g.state === 'wander' && Math.random() < 0.05) {
-      const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-      const [dr, dc] = dirs[Math.floor(Math.random() * 4)];
-      const nr = Math.max(0, Math.min(GRID_ROWS-1, g.row + dr));
-      const nc = Math.max(0, Math.min(GRID_COLS-1, g.col + dc));
-      g.row = nr; g.col = nc;
-    }
-
-    // Leaving conditions
-    if (g.happiness < 10 || g.cash <= 0 || g.energy < 5) {
-      toRemove.push(g.id);
-    }
-  }
-
-  // Remove leaving guests
-  for (const id of toRemove) {
-    const idx = state.guests.findIndex(g => g.id === id);
-    if (idx !== -1) state.guests.splice(idx, 1);
-  }
-}
-
-function nearestShop(g, shopType) {
-  let best = null, bestDist = 9999;
-  for (const r of state.rides) {
-    if (r.rideType !== shopType) continue;
-    if (r.status === 'closed') continue;
-    const d = Math.abs(r.row - g.row) + Math.abs(r.col - g.col);
-    if (d < bestDist) { bestDist = d; best = r; }
-  }
-  return best;
-}
-
-function pickRide(g) {
-  const available = state.rides.filter(r =>
-    r.category !== 'shop' &&
-    r.status === 'open' &&
-    r.nausea <= g.nausea + 30 &&
-    g.cash >= state.ridePrice * r.ticketMult
-  );
-  if (available.length === 0) return null;
-  return available[Math.floor(Math.random() * available.length)];
-}
-
-function rideGuest(g, ride) {
-  if (ride.status !== 'open') return;
-  const cost = Math.floor(state.ridePrice * ride.ticketMult * 100) / 100;
-  if (g.cash < cost) return;
-  g.cash -= cost;
-  earn(cost);
-  state.totalEarned += cost;
-  state.tickAccumIncome += cost;
-  ride.totalRiders++;
-  ride.income += cost;
-  g.ridesRidden++;
-  g.energy = Math.min(100, g.energy + 5);
-  // Excitement bonus to happiness
-  g.happiness = Math.min(100, g.happiness + ride.excitement * 2);
-  // Nausea from intense rides
-  g.nausea = Math.min(100, g.nausea + ride.nausea * 2);
-  ride.queue = Math.max(0, (ride.queue || 0) - 1);
-  state.stats.ridesRidden++;
-}
-
-function shopGuest(g, shop) {
-  if (shop.rideType === 'food') {
-    const cost = state.foodPrice;
-    if (g.cash < cost) return;
-    g.cash -= cost; earn(cost); state.totalEarned += cost; state.tickAccumIncome += cost;
-    g.hunger = Math.max(0, g.hunger - 60);
-    g.happiness = Math.min(100, g.happiness + 5);
-    state.stats.foodSold++;
-  } else if (shop.rideType === 'drink') {
-    const cost = state.drinkPrice;
-    if (g.cash < cost) return;
-    g.cash -= cost; earn(cost); state.totalEarned += cost; state.tickAccumIncome += cost;
-    g.thirst = Math.max(0, g.thirst - 70);
-    g.happiness = Math.min(100, g.happiness + 4);
-    state.stats.drinkSold++;
-  } else if (shop.rideType === 'souvenir') {
-    const cost = 5;
-    if (g.cash < cost) return;
-    g.cash -= cost; earn(cost); state.totalEarned += cost; state.tickAccumIncome += cost;
-    g.happiness = Math.min(100, g.happiness + 3);
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-//  RIDE MAINTENANCE
-// ═══════════════════════════════════════════════════════
-function updateRides() {
-  const mechEfficiency = 1 + state.staff.mechanic * 0.15;
-  for (const ride of state.rides) {
-    if (ride.category === 'shop') continue;
-
-    ride.age++;
-    // Queue simulation
-    const openGuests = state.guests.filter(g => g.state !== 'leaving');
-    ride.queue = Math.max(0, Math.min(
-      ride.capacity * 3,
-      Math.floor(openGuests.length * 0.08 * (ride.excitement / 8))
-    ));
-
-    // Breakdown probability
-    if (ride.status === 'open') {
-      const breakProb = 0.0005 * (1 + ride.age * 0.001) / mechEfficiency;
-      if (Math.random() < breakProb) {
-        ride.status = 'maintenance';
-        ride.maintenanceDue = 120 + Math.floor(Math.random() * 180);
-        notify(`⚠️ ${ride.name} broke down! Mechanic dispatched.`, 'warning');
-        state.parkRating = Math.max(0, state.parkRating - 10);
-      }
-    }
-    if (ride.status === 'maintenance') {
-      ride.maintenanceDue = Math.max(0, ride.maintenanceDue - mechEfficiency);
-      if (ride.maintenanceDue <= 0) {
-        ride.status = 'open';
-        notify(`✅ ${ride.name} repaired and re-opened!`, 'positive');
-      }
-    }
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-//  MONTH END
-// ═══════════════════════════════════════════════════════
-function monthEnd() {
-  // Staff wages
-  const wage = calcStaffWage();
-  spend(wage);
-  state.tickAccumExpenses += wage;
-
-  // Loan interest
-  if (state.loans > 0) {
-    const interest = Math.floor(state.loans * 0.05 / 12);
-    spend(interest);
-    state.tickAccumExpenses += interest;
-  }
-
-  // Marketing expiry
-  for (const c of state.marketing) { c.monthsLeft--; }
-  state.marketing = state.marketing.filter(c => c.monthsLeft > 0);
-
-  // Weather change
-  state.weatherChangeIn--;
-  if (state.weatherChangeIn <= 0) {
-    state.weather = Math.floor(Math.random() * WEATHER_TYPES.length);
-    const w = WEATHER_TYPES[state.weather];
-    state.temperature = w.tempRange[0] + Math.floor(Math.random() * (w.tempRange[1] - w.tempRange[0]));
-    state.weatherChangeIn = 2 + Math.floor(Math.random() * 4);
-    notify(`Weather changed: ${w.icon} ${w.name}`, '');
-  }
-
-  // Park rating calculation
-  let ratingChange = 0;
-  const openRides = state.rides.filter(r => r.category !== 'shop' && r.status === 'open');
-  ratingChange += openRides.length * 5;
-  const avgHappy = state.guests.length > 0
-    ? state.guests.reduce((s, g) => s + g.happiness, 0) / state.guests.length
-    : 50;
-  ratingChange += (avgHappy - 50) * 0.5;
-  ratingChange -= state.guests.filter(g => g.hunger > 80).length * 0.5;
-  ratingChange += state.staff.janitor * 2;
-  if (openRides.length === 0) ratingChange -= 20;
-  state.parkRating = Math.max(0, Math.min(1000, state.parkRating + ratingChange * 0.1));
-
-  // Financials
-  state.lastMonthProfit = state.tickAccumIncome - state.tickAccumExpenses;
-  state.monthlyIncome   = state.tickAccumIncome;
-  state.monthlyExpenses = state.tickAccumExpenses;
-  state.monthlyProfit   = state.lastMonthProfit;
-  state.tickAccumIncome = 0;
-  state.tickAccumExpenses = 0;
-
-  // Objectives
-  checkObjectives();
-
-  // Date advance
-  state.month++;
-  if (state.month > 12) { state.month = 1; state.year++; }
-
-  updateUI();
-}
-
-function calcStaffWage() {
-  const s = state.staff;
-  return (s.mechanic * 150) + (s.janitor * 120) + (s.entertainer * 180) + (s.security * 130);
-}
-
-// ═══════════════════════════════════════════════════════
-//  FINANCES
-// ═══════════════════════════════════════════════════════
-function canAfford(amount) {
-  if (state.cash < amount) { notify(`Not enough cash! Need $${amount.toLocaleString()}`, 'warning'); return false; }
-  return true;
-}
-function spend(amount) { state.cash -= amount; state.tickAccumExpenses += amount; }
-function earn(amount)  { state.cash += amount; }
-
-// ═══════════════════════════════════════════════════════
-//  OBJECTIVES
-// ═══════════════════════════════════════════════════════
-function checkObjectives() {
-  let changed = false;
-  for (const obj of state.objectives) {
-    if (!obj.done && obj.target()) {
-      obj.done = true;
-      changed = true;
-      notify(`🏆 Objective complete: ${obj.text}!`, 'positive');
-    }
-  }
-  if (changed) updateObjectivesUI();
-}
-
-function updateObjectivesUI() {
-  const el = document.getElementById('objectives-list');
-  el.innerHTML = state.objectives.map(o =>
-    `<div style="color:${o.done ? '#4caf50' : '#ccc'}">${o.done ? '✅' : '⬜'} ${o.text}</div>`
-  ).join('');
-}
-
-// ═══════════════════════════════════════════════════════
-//  UI UPDATE
-// ═══════════════════════════════════════════════════════
-function formatMoney(n) {
-  const v = Math.abs(n);
-  const s = v >= 1000 ? '$' + (v/1000).toFixed(1) + 'k' : '$' + v.toFixed(0);
-  return n < 0 ? '-' + s : s;
-}
-
-function updateUI() {
-  // Top bar
-  const cashEl = document.getElementById('stat-cash');
-  cashEl.textContent = formatMoney(state.cash);
-  cashEl.className = 'stat-value ' + (state.cash < 0 ? 'red' : state.cash < 5000 ? 'yellow' : 'green');
-
-  const incomeEl = document.getElementById('stat-income');
-  incomeEl.textContent = (state.monthlyProfit >= 0 ? '+' : '') + formatMoney(state.monthlyProfit);
-  incomeEl.className = 'stat-value ' + (state.monthlyProfit >= 0 ? 'cyan' : 'red');
-
-  document.getElementById('stat-guests').textContent  = state.guests.length;
-  document.getElementById('stat-rating').textContent  = Math.floor(state.parkRating);
-  const ratingEl = document.getElementById('stat-rating');
-  ratingEl.className = 'stat-value ' + (state.parkRating > 750 ? 'green' : state.parkRating > 500 ? 'yellow' : 'red');
-
-  const avgHappy = state.guests.length > 0
-    ? Math.floor(state.guests.reduce((s, g) => s + g.happiness, 0) / state.guests.length)
-    : 75;
-  document.getElementById('stat-happiness').textContent = avgHappy + '%';
-  document.getElementById('stat-happiness').className = 'stat-value ' + (avgHappy > 65 ? 'green' : avgHappy > 40 ? 'yellow' : 'red');
-  document.getElementById('date-display').textContent  = `Year ${state.year}, Month ${state.month}`;
-
-  // Info panel
-  document.getElementById('ip-cash').textContent     = formatMoney(state.cash);
-  document.getElementById('ip-loans').textContent    = formatMoney(state.loans);
-  document.getElementById('ip-income').textContent   = formatMoney(state.monthlyIncome);
-  document.getElementById('ip-expenses').textContent = formatMoney(state.monthlyExpenses);
-  document.getElementById('ip-profit').textContent   = (state.monthlyProfit >= 0 ? '+' : '') + formatMoney(state.monthlyProfit);
-  document.getElementById('ip-profit').style.color   = state.monthlyProfit >= 0 ? '#4caf50' : '#e94560';
-
-  const rides = state.rides.filter(r => r.category !== 'shop');
-  const shops = state.rides.filter(r => r.category === 'shop');
-  document.getElementById('ip-rides').textContent = rides.length;
-  document.getElementById('ip-open').textContent  = rides.filter(r => r.status === 'open').length;
-  document.getElementById('ip-shops').textContent = shops.length;
-  const totalStaff = Object.values(state.staff).reduce((a,b)=>a+b, 0);
-  document.getElementById('ip-staff').textContent = totalStaff;
-  document.getElementById('ip-entry').textContent = '$' + state.entryFee;
-
-  // Guest mood averages
-  const avg = key => state.guests.length > 0
-    ? Math.floor(state.guests.reduce((s,g)=>s+g[key],0)/state.guests.length) : 0;
-  const happy   = avg('happiness');
-  const hunger  = avg('hunger');
-  const energy  = avg('energy');
-  const nausea  = avg('nausea');
-  document.getElementById('ip-happy').textContent  = happy + '%';
-  document.getElementById('ip-hunger').textContent = hunger + '%';
-  document.getElementById('ip-energy').textContent = energy + '%';
-  document.getElementById('ip-nausea').textContent = nausea + '%';
-  document.getElementById('bar-happy').style.width  = happy  + '%';
-  document.getElementById('bar-hunger').style.width = hunger + '%';
-  document.getElementById('bar-energy').style.width = energy + '%';
-  document.getElementById('bar-nausea').style.width = nausea + '%';
-
-  // Weather
-  const w = WEATHER_TYPES[state.weather];
-  document.getElementById('ip-weather').textContent  = `${w.name} ${w.icon}`;
-  document.getElementById('ip-temp').textContent     = `${state.temperature}°C`;
-  document.getElementById('ip-wchange').textContent  = `${state.weatherChangeIn} mo`;
-  document.getElementById('weather-icon').textContent  = w.icon;
-  document.getElementById('weather-label').textContent = w.name;
-
-  updateObjectivesUI();
-}
-
-function updateRideList() {
-  const el = document.getElementById('ride-list');
-  if (state.rides.length === 0) { el.innerHTML = '<div style="color:#555;font-size:11px;">No rides yet</div>'; return; }
-  el.innerHTML = state.rides.slice(0, 12).map(r => `
-    <div class="ride-item" onclick="openRideInfoById(${r.id})">
-      <div class="ride-item-name">${r.icon} ${r.name}</div>
-      <div class="ride-item-stats">
-        <span style="color:${r.status==='open'?'#4caf50':r.status==='maintenance'?'#ffd700':'#e94560'}">${r.status.toUpperCase()}</span>
-        <span>👥${r.queue}</span>
-        <span>💰${formatMoney(r.income)}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ═══════════════════════════════════════════════════════
-//  TOOL SELECTION
-// ═══════════════════════════════════════════════════════
-function selectTool(tool) {
-  state.selectedTool = tool;
-  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
-  const btn = document.getElementById('tool-' + tool);
-  if (btn) btn.classList.add('selected');
-  document.getElementById('status-text').textContent = getToolHint(tool);
-}
-
-function getToolHint(tool) {
-  const hints = {
-    path: 'Click tiles to lay paths ($25 each)',
-    bulldoze: 'Click to demolish tiles (25% refund on rides)',
-    entrance: 'Place a park entrance ($500)',
-    tree: 'Plant a tree for scenery ($50)',
-    bench: 'Place a bench ($80)',
-    fountain: 'Build a fountain ($200)',
-  };
-  const rDef = RIDE_TYPES[tool];
-  if (rDef) return `Place ${rDef.icon} ${rDef.name} – Cost $${rDef.cost.toLocaleString()} | Excitement:${rDef.excitement} Intensity:${rDef.intensity}`;
-  return hints[tool] || 'Select a tile to place';
-}
-
-// ═══════════════════════════════════════════════════════
-//  SPEED CONTROLS
-// ═══════════════════════════════════════════════════════
-function setSpeed(s) {
-  state.speed = s;
-  state.paused = (s === 0);
-  ['btn-pause','btn-1x','btn-3x'].forEach(id => document.getElementById(id).classList.remove('active'));
-  if (s === 0) document.getElementById('btn-pause').classList.add('active');
-  else if (s === 1) document.getElementById('btn-1x').classList.add('active');
-  else  document.getElementById('btn-3x').classList.add('active');
-}
-
-// ═══════════════════════════════════════════════════════
-//  GAME LOOP
-// ═══════════════════════════════════════════════════════
-let lastTime = 0;
-function gameLoop(ts) {
-  if (!state.paused) {
-    const dtTarget = 1000 / (30 * state.speed);  // target ms between ticks
-    if (ts - lastTime >= dtTarget / state.speed) {
-      lastTime = ts;
-      for (let i = 0; i < state.speed; i++) {
-        tick();
-      }
-    }
-  }
-  requestAnimationFrame(gameLoop);
-}
-
-function tick() {
-  state.tick++;
-  spawnGuest();
-  updateGuests();
-  updateRides();
-
-  // Month end
-  if (state.tick % MONTH_TICKS === 0) {
-    monthEnd();
-    updateRideList();
-  }
-
-  // UI update every 30 ticks
-  if (state.tick % 30 === 0) {
-    updateUI();
-  }
-}
-
-requestAnimationFrame(gameLoop);
-
-// ═══════════════════════════════════════════════════════
-//  NOTIFICATIONS
-// ═══════════════════════════════════════════════════════
-function notify(msg, type = '') {
-  const container = document.getElementById('notifications');
-  const el = document.createElement('div');
-  el.className = 'notif ' + type;
-  el.textContent = msg;
-  container.appendChild(el);
-  setTimeout(() => el.remove(), 4200);
-}
-
-// ═══════════════════════════════════════════════════════
-//  RIDE INFO MODAL
-// ═══════════════════════════════════════════════════════
-let selectedRideId = null;
-function openRideInfo(ride) {
-  selectedRideId = ride.id;
-  document.getElementById('ride-modal-title').textContent = ride.icon + ' ' + ride.name;
-  document.getElementById('ride-modal-body').innerHTML = `
-    <div class="info-row"><span>Status</span><span style="color:${ride.status==='open'?'#4caf50':ride.status==='maintenance'?'#ffd700':'#e94560'}">${ride.status.toUpperCase()}</span></div>
-    ${ride.category!=='shop'?`
-    <div class="info-row"><span>Excitement</span><span>${ride.excitement.toFixed(1)}</span></div>
-    <div class="info-row"><span>Intensity</span><span>${ride.intensity.toFixed(1)}</span></div>
-    <div class="info-row"><span>Nausea</span><span>${ride.nausea.toFixed(1)}</span></div>
-    <div class="info-row"><span>Queue</span><span>${ride.queue || 0}</span></div>
-    <div class="info-row"><span>Total Riders</span><span>${ride.totalRiders}</span></div>
-    `:``}
-    <div class="info-row"><span>Total Income</span><span>${formatMoney(ride.income)}</span></div>
-    <div class="info-row"><span>Built Cost</span><span>${formatMoney(ride.cost)}</span></div>
-    <div class="info-row"><span>Age</span><span>${ride.age} months</span></div>
-  `;
-  document.getElementById('modal-ride-info').classList.add('visible');
-}
-function openRideInfoById(id) {
-  const ride = state.rides.find(r => r.id === id);
-  if (ride) openRideInfo(ride);
-}
-function toggleRide() {
-  const ride = state.rides.find(r => r.id === selectedRideId);
-  if (!ride) return;
-  if (ride.status === 'open') ride.status = 'closed';
-  else if (ride.status === 'closed') ride.status = 'open';
-  openRideInfo(ride);
-  updateRideList();
-}
-function demolishRide() {
-  const ride = state.rides.find(r => r.id === selectedRideId);
-  if (!ride) return;
-  closeModal('modal-ride-info');
-  bulldozeTile(ride.row, ride.col);
-}
-
-// ═══════════════════════════════════════════════════════
-//  PRICING MODAL
-// ═══════════════════════════════════════════════════════
-function openPricingModal() {
-  document.getElementById('price-entry').value = state.entryFee;
-  document.getElementById('price-ride').value  = state.ridePrice;
-  document.getElementById('price-food').value  = state.foodPrice;
-  document.getElementById('price-drink').value = state.drinkPrice;
-  updatePriceLabel('entry'); updatePriceLabel('ride');
-  updatePriceLabel('food');  updatePriceLabel('drink');
-  document.getElementById('modal-pricing').classList.add('visible');
-}
-function updatePriceLabel(which) {
-  const v = document.getElementById('price-' + which).value;
-  document.getElementById('label-' + which).textContent = '$' + parseFloat(v).toFixed(which === 'entry' ? 0 : 1);
-}
-function applyPricing() {
-  state.entryFee  = parseFloat(document.getElementById('price-entry').value);
-  state.ridePrice = parseFloat(document.getElementById('price-ride').value);
-  state.foodPrice = parseFloat(document.getElementById('price-food').value);
-  state.drinkPrice= parseFloat(document.getElementById('price-drink').value);
-  notify('💲 Prices updated!', 'positive');
-  closeModal('modal-pricing');
-  updateUI();
-}
-
-// ═══════════════════════════════════════════════════════
-//  STAFF MODAL
-// ═══════════════════════════════════════════════════════
-function openStaffModal() {
-  document.getElementById('staff-mechanic').value    = state.staff.mechanic;
-  document.getElementById('staff-janitor').value     = state.staff.janitor;
-  document.getElementById('staff-entertainer').value = state.staff.entertainer;
-  document.getElementById('staff-security').value    = state.staff.security;
-  updateStaffLabel('mechanic'); updateStaffLabel('janitor');
-  updateStaffLabel('entertainer'); updateStaffLabel('security');
-  updateStaffCost();
-  document.getElementById('modal-staff').classList.add('visible');
-}
-function updateStaffLabel(which) {
-  const v = document.getElementById('staff-' + which).value;
-  document.getElementById('label-' + which).textContent = v;
-  updateStaffCost();
-}
-function updateStaffCost() {
-  const m = +document.getElementById('staff-mechanic').value;
-  const j = +document.getElementById('staff-janitor').value;
-  const e = +document.getElementById('staff-entertainer').value;
-  const s = +document.getElementById('staff-security').value;
-  const cost = m*150 + j*120 + e*180 + s*130;
-  document.getElementById('staff-cost').textContent = '$' + cost.toLocaleString();
-}
-function applyStaff() {
-  state.staff.mechanic    = +document.getElementById('staff-mechanic').value;
-  state.staff.janitor     = +document.getElementById('staff-janitor').value;
-  state.staff.entertainer = +document.getElementById('staff-entertainer').value;
-  state.staff.security    = +document.getElementById('staff-security').value;
-  notify('👷 Staff updated!', 'positive');
-  closeModal('modal-staff');
-  updateUI();
-}
-
-// ═══════════════════════════════════════════════════════
-//  MARKETING MODAL
-// ═══════════════════════════════════════════════════════
-function openMarketingModal() {
-  const el = document.getElementById('marketing-options');
-  el.innerHTML = MARKETING_CAMPAIGNS.map(c => {
-    const active = state.marketing.find(m => m.id === c.id);
-    return `
-      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px;margin-bottom:8px;">
-        <div style="font-weight:bold;margin-bottom:4px;">${c.name}</div>
-        <div style="font-size:11px;color:#aaa;margin-bottom:6px;">${c.desc}</div>
-        <div style="font-size:11px;color:#ffd700;">Cost: $${c.cost.toLocaleString()}</div>
-        ${active
-          ? `<div style="color:#4caf50;font-size:11px;margin-top:4px;">✅ Active – ${active.monthsLeft} months left</div>`
-          : `<button class="modal-btn" style="margin-top:6px;padding:5px 14px;font-size:12px;" onclick="startCampaign('${c.id}')">Launch</button>`
-        }
-      </div>
-    `;
-  }).join('');
-  document.getElementById('modal-marketing').classList.add('visible');
-}
-function startCampaign(id) {
-  const c = MARKETING_CAMPAIGNS.find(x => x.id === id);
-  if (!c) return;
-  if (!canAfford(c.cost)) return;
-  spend(c.cost);
-  state.tickAccumExpenses += c.cost;
-  state.marketing.push({ id: c.id, monthsLeft: c.duration, guestBonus: c.guestBonus });
-  notify(`📢 ${c.name} launched!`, 'positive');
-  openMarketingModal(); // refresh
-}
-
-// ═══════════════════════════════════════════════════════
-//  LOANS MODAL
-// ═══════════════════════════════════════════════════════
-function openLoansModal() {
-  document.getElementById('loan-amount').value = 10000;
-  updateLoanLabel();
-  document.getElementById('loan-current').textContent = formatMoney(state.loans);
-  document.getElementById('modal-loans').classList.add('visible');
-}
-function updateLoanLabel() {
-  const v = +document.getElementById('loan-amount').value;
-  document.getElementById('label-loan').textContent = formatMoney(v);
-}
-function takeLoan() {
-  const amount = +document.getElementById('loan-amount').value;
-  if (amount <= 0) return;
-  if (state.loans + amount > 100000) { notify('Loan limit: $100k', 'warning'); return; }
-  state.loans += amount;
-  earn(amount);
-  notify(`🏦 Borrowed ${formatMoney(amount)}. Total debt: ${formatMoney(state.loans)}`, 'warning');
-  document.getElementById('loan-current').textContent = formatMoney(state.loans);
-  updateUI();
-}
-function repayLoan() {
-  const repay = Math.min(5000, state.loans);
-  if (repay <= 0) { notify('No loan to repay!', 'warning'); return; }
-  if (!canAfford(repay)) return;
-  spend(repay);
-  state.loans -= repay;
-  notify(`✅ Repaid ${formatMoney(repay)}. Remaining: ${formatMoney(state.loans)}`, 'positive');
-  document.getElementById('loan-current').textContent = formatMoney(state.loans);
-  updateUI();
-}
-
-// ═══════════════════════════════════════════════════════
-//  MODAL HELPERS
-// ═══════════════════════════════════════════════════════
-function closeModal(id) {
-  document.getElementById(id).classList.remove('visible');
-}
-// Close modal on backdrop click
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('visible'); });
-});
-
-// ═══════════════════════════════════════════════════════
-//  INITIAL UI SETUP
-// ═══════════════════════════════════════════════════════
-updateUI();
-updateRideList();
-updateObjectivesUI();
-selectTool('path');
-notify('🎢 Welcome to TycoonPark! Build paths, place rides, and attract guests!', 'positive');
-notify('💡 Tip: Lay paths from the entrance, then place rides nearby.', '');
-</script>
 </body>
 </html>

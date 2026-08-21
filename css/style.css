@@ -1,0 +1,404 @@
+/* ═══════════════════════════════════════════════════════
+   GLOBAL RESET & BASE
+═══════════════════════════════════════════════════════ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #1a1a2e;
+  font-family: 'Segoe UI', sans-serif;
+  color: #eee;
+  overflow: hidden;
+  user-select: none;
+}
+
+#game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOP BAR
+═══════════════════════════════════════════════════════ */
+#topbar {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #16213e, #0f3460);
+  border-bottom: 2px solid #e94560;
+  padding: 6px 12px;
+  gap: 20px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+#topbar h1 {
+  font-size: 18px;
+  color: #e94560;
+  text-shadow: 0 0 10px #e94560;
+  white-space: nowrap;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 4px 10px;
+  min-width: 80px;
+}
+
+.stat-label {
+  font-size: 9px;
+  color: #aaa;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.stat-value.green  { color: #4caf50; }
+.stat-value.yellow { color: #ffd700; }
+.stat-value.red    { color: #e94560; }
+.stat-value.cyan   { color: #00bcd4; }
+
+#speed-controls {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.speed-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.speed-btn:hover,
+.speed-btn.active {
+  background: #e94560;
+  border-color: #e94560;
+}
+
+#date-display {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════════════════════════════ */
+#main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════
+   LEFT SIDEBAR
+═══════════════════════════════════════════════════════ */
+#sidebar {
+  width: 200px;
+  background: #16213e;
+  border-right: 2px solid #0f3460;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  border-bottom: 1px solid #0f3460;
+  padding: 8px;
+}
+
+.sidebar-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #e94560;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ddd;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  font-size: 12px;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.tool-btn:hover {
+  background: rgba(233, 69, 96, 0.2);
+  border-color: #e94560;
+  color: #fff;
+}
+
+.tool-btn.selected {
+  background: rgba(233, 69, 96, 0.35);
+  border-color: #e94560;
+  color: #fff;
+}
+
+.tool-icon { font-size: 16px; }
+
+.ride-cost {
+  font-size: 10px;
+  color: #aaa;
+  margin-left: auto;
+}
+
+/* ═══════════════════════════════════════════════════════
+   CANVAS AREA
+═══════════════════════════════════════════════════════ */
+#canvas-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #0a0a1a;
+}
+
+#game-canvas {
+  display: block;
+  cursor: crosshair;
+}
+
+#canvas-wrapper.pointer-cursor #game-canvas { cursor: pointer; }
+#canvas-wrapper.move-cursor    #game-canvas { cursor: grab; }
+
+/* ═══════════════════════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════════════════════ */
+#notifications {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 20;
+  max-width: 260px;
+}
+
+.notif {
+  background: rgba(22, 33, 62, 0.95);
+  border-left: 3px solid #e94560;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  animation: slideIn 0.3s ease, fadeOut 0.5s ease 3.5s forwards;
+}
+
+.notif.positive { border-left-color: #4caf50; }
+.notif.warning  { border-left-color: #ffd700; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   RIGHT INFO PANEL
+═══════════════════════════════════════════════════════ */
+#info-panel {
+  width: 200px;
+  background: #16213e;
+  border-left: 2px solid #0f3460;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.info-section {
+  border-bottom: 1px solid #0f3460;
+  padding: 8px;
+}
+
+.info-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #00bcd4;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 3px;
+  color: #ccc;
+}
+
+.info-row span:last-child {
+  color: #fff;
+  font-weight: bold;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin: 3px 0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s;
+}
+
+.fill-green  { background: linear-gradient(90deg, #4caf50, #81c784); }
+.fill-yellow { background: linear-gradient(90deg, #ffd700, #ffe57f); }
+.fill-red    { background: linear-gradient(90deg, #e94560, #ff6b6b); }
+.fill-cyan   { background: linear-gradient(90deg, #00bcd4, #80deea); }
+
+/* ═══════════════════════════════════════════════════════
+   RIDE LIST
+═══════════════════════════════════════════════════════ */
+.ride-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 5px 7px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ride-item:hover { background: rgba(0, 188, 212, 0.1); }
+
+.ride-item-name  { font-weight: bold; color: #fff; }
+
+.ride-item-stats {
+  color: #aaa;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   BOTTOM BAR
+═══════════════════════════════════════════════════════ */
+#bottombar {
+  background: #16213e;
+  border-top: 2px solid #0f3460;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: #aaa;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#status-text { flex: 1; }
+
+#weather-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  display: none;
+}
+
+.modal-overlay.visible {
+  display: flex;
+}
+
+.modal {
+  background: #16213e;
+  border: 2px solid #0f3460;
+  border-radius: 10px;
+  padding: 24px;
+  min-width: 340px;
+  max-width: 480px;
+}
+
+.modal h2 {
+  color: #e94560;
+  margin-bottom: 14px;
+  font-size: 18px;
+}
+
+.modal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.modal-row label { font-size: 13px; color: #ccc; }
+
+.modal-row input[type="range"] {
+  width: 100px;
+  accent-color: #e94560;
+}
+
+.modal-row span.val {
+  font-size: 13px;
+  color: #ffd700;
+  font-weight: bold;
+  min-width: 50px;
+  text-align: right;
+}
+
+.modal-btn {
+  background: #e94560;
+  border: none;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 12px;
+  margin-right: 8px;
+  transition: background 0.2s;
+}
+
+.modal-btn:hover          { background: #c73652; }
+.modal-btn.secondary      { background: rgba(255, 255, 255, 0.1); }
+.modal-btn.secondary:hover{ background: rgba(255, 255, 255, 0.2); }
